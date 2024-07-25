@@ -1,37 +1,39 @@
-resource "aws_security_group" "allow_tls" {
-  name        = "allow_tls"
-  description = "Allow TLS inbound traffic and all outbound traffic"
-  vpc_id      = aws_vpc.main.id
+provider "aws" {
+  region = "eu-central-1"  # Specify your desired AWS region
+}
 
+resource "aws_redshift_cluster" "example_cluster" {
+  cluster_identifier      = "example-cluster"
+  database_name           = "mydatabase"
+  master_username         = "admin"
+  master_password         = "MySuperSecretPassword123" 
+
+  node_type               = "dc2.large"
+  cluster_type            = "single-node"  # 
+
+  # AWS Redshift cluster parameters
+  cluster_parameter_group_name = "default.redshift-1.0"
+  cluster_subnet_group_name    = "subnet-0adeb216161049cca"  # Ensure this subnet group exists
+
+  # VPC security group IDs
+  vpc_security_group_ids = [
+    "sg-0493c12ed4545a123"  # Replace with your own security group IDs
+  ]
+
+  # IAM roles (optional)
+  iam_roles = [
+    "arn:aws:iam::790543352839:role/aws-service-role/redshift.amazonaws.com/AWSServiceRoleForRedshift"  # Replace with your IAM role ARN if needed
+  ]
+
+  # Cluster encryption (optional)
+  encrypted = false  # Set to true for encrypted clusters
+
+  # Snapshot configuration (optional)
+  skip_final_snapshot = false  # Set to false if you want a final snapshot
+
+  # Tags (optional)
   tags = {
-    Name = "allow_tls"
+    Environment = "Development"
+    Owner       = "Terraform"
   }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv4         = aws_vpc.main.cidr_block
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv6" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv6         = aws_vpc.main.ipv6_cidr_block
-  from_port         = 443
-  ip_protocol       = "tcp"
-  to_port           = 443
-}
-
-resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1" # semantically equivalent to all ports
-}
-
-resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
-  security_group_id = aws_security_group.allow_tls.id
-  cidr_ipv6         = "::/0"
-  ip_protocol       = "-1" # semantically equivalent to all ports
 }
