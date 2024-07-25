@@ -64,8 +64,8 @@ resource "null_resource" "run_long_task" {
       START_TIME=$(date +%s)
       echo "Starting long-running process..."
       sleep 2700
-      #ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
-      #echo "Long-running process completed in ${ELAPSED_TIME} seconds."
+      # ELAPSED_TIME=$(( $(date +%s) - START_TIME ))
+      # echo "Long-running process completed in ${ELAPSED_TIME} seconds."
     EOT
 
     interpreter = ["bash", "-c"]
