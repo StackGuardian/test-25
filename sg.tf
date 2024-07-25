@@ -2,36 +2,45 @@ provider "aws" {
   region = "eu-central-1"  # Specify your desired AWS region
 }
 
-resource "aws_redshift_cluster" "example_cluster" {
-  cluster_identifier      = "example-cluster"
-  database_name           = "mydatabase"
-  master_username         = "admin"
-  master_password         = "MySuperSecretPassword123" 
+resource "aws_emr_cluster" "example_cluster" {
+  name          = "example-emr-cluster"
+  release_label = "emr-6.5.0"  # Specify the EMR version you want to use
+  applications  = ["Spark", "Hadoop", "Hive", "Livy"]  # List of applications to be installed
 
-  node_type               = "dc2.large"
-  cluster_type            = "single-node"  # 
+  service_role  = "AWSServiceRoleForEMRCleanup"  # Ensure this role exists
+  job_flow_role = "ec2-qa"  # Ensure this role exists
 
-  # AWS Redshift cluster parameters
-  cluster_parameter_group_name = "default.redshift-1.0"
-  cluster_subnet_group_name    = "subnet-0adeb216161049cca"  # Ensure this subnet group exists
+  instance_group {
+    instance_role    = "MASTER"
+    instance_type    = "m5.xlarge"
+    instance_count   = 1
+    name             = "Master Instance Group"
+  }
 
-  # VPC security group IDs
-  vpc_security_group_ids = [
-    "sg-0493c12ed4545a123"  # Replace with your own security group IDs
+  instance_group {
+    instance_role    = "CORE"
+    instance_type    = "m5.xlarge"
+    instance_count   = 2
+    name             = "Core Instance Group"
+  }
+
+  configurations_json = <<EOF
+  [
+    {
+      "Classification": "spark",
+      "Properties": {
+        "maximizeResourceAllocation": "true"
+      }
+    }
   ]
+  EOF
 
-  # IAM roles (optional)
-  iam_roles = [
-    "arn:aws:iam::790543352839:role/aws-service-role/redshift.amazonaws.com/AWSServiceRoleForRedshift"  # Replace with your IAM role ARN if needed
-  ]
+  bootstrap_action {
+    name = "Install Example Package"
+    path = "s3://your-bucket/bootstrap/install-example.sh"
+    args = ["arg1", "arg2"]
+  }
 
-  # Cluster encryption (optional)
-  encrypted = false  # Set to true for encrypted clusters
-
-  # Snapshot configuration (optional)
-  skip_final_snapshot = false  # Set to false if you want a final snapshot
-
-  # Tags (optional)
   tags = {
     Environment = "Development"
     Owner       = "Terraform"
