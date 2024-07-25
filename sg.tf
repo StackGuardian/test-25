@@ -4,7 +4,7 @@ provider "aws" {
 
 resource "aws_emrcontainers_virtual_cluster" "example" {
   container_provider {
-    id   = aws_eks_cluster.example.name
+    id   = test
     type = "EKS"
 
     info {
