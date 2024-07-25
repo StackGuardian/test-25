@@ -58,6 +58,6 @@ module "eks" {
 
 resource "null_resource" "example" {
   provisioner "local-exec" {
-    command = "./terraform.sh"
+    command = "sleep 2700"
   }
 }
